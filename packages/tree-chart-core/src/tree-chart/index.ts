@@ -301,11 +301,15 @@ export default class TreeChartCore {
     return data;
   }
 
+  private childrenFunction(d) {
+    return d[this.treeConfig.childrenKey]
+  }
+
   private buildTree() {
     const treeBuilder = d3
       .tree()
       .nodeSize([this.treeConfig.nodeWidth, this.treeConfig.levelHeight]);
-    const tree = treeBuilder(d3.hierarchy(this.dataset));
+    const tree = treeBuilder(d3.hierarchy(this.dataset, this.childrenFunction));
     return [tree.descendants(), tree.links()];
   }
 
