@@ -1,6 +1,7 @@
 export const DEFAULT_NODE_WIDTH = 100;
 export const DEFAULT_NODE_HEIGHT = 100;
 export const DEFAULT_LEVEL_HEIGHT = 200;
+export const DEFAULT_CHILDREN_KEY = 'children';
 
 /**
  * Used to decrement the height of the 'initTransformY' to center diagrams.

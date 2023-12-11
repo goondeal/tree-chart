@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { ANIMATION_DURATION, DEFAULT_HEIGHT_DECREMENT, DEFAULT_LEVEL_HEIGHT, DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH, MATCH_SCALE_REGEX, MATCH_TRANSLATE_REGEX } from './constant';
+import { ANIMATION_DURATION, DEFAULT_HEIGHT_DECREMENT, DEFAULT_LEVEL_HEIGHT, DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH, DEFAULT_CHILDREN_KEY, MATCH_SCALE_REGEX, MATCH_TRANSLATE_REGEX } from './constant';
 import { TreeDataset, Direction, TreeLinkStyle } from './tree-chart';
 import { deepCopy, rotatePoint } from './util';
 
@@ -8,6 +8,7 @@ interface TreeConfig {
   nodeWidth: number;
   nodeHeight: number;
   levelHeight: number;
+  childrenKey: string;
 }
 
 
@@ -27,6 +28,7 @@ export default class TreeChartCore {
     nodeWidth: DEFAULT_NODE_WIDTH,
     nodeHeight: DEFAULT_NODE_HEIGHT,
     levelHeight: DEFAULT_LEVEL_HEIGHT,
+    childrenKey: DEFAULT_CHILDREN_KEY,
   };
   linkStyle: TreeLinkStyle = TreeLinkStyle.CURVE;
   direction: Direction = Direction.VERTICAL;
@@ -48,7 +50,9 @@ export default class TreeChartCore {
 
   constructor(params: TreeChartCoreParams) {
     if (params.treeConfig) {
-      this.treeConfig = params.treeConfig;
+      for (const key in params.treeConfig) {
+        this.treeConfig[key] = params.treeConfig[key];
+      }
     }
     this.collapseEnabled = params.collapseEnabled
     this.svgElement = params.svgElement;
@@ -283,14 +287,16 @@ export default class TreeChartCore {
  * Returns updated dataset by deep copying every nodes from the externalData and adding unique '_key' attributes.
  **/
   private updatedInternalData(externalData) {
-    var data = { name: "__invisible_root", children: [] };
+    var data = { name: "__invisible_root"};
+    const childrenKey = this.treeConfig.childrenKey
+    data[childrenKey] = []
     if (!externalData) return data;
     if (Array.isArray(externalData)) {
       for (var i = externalData.length - 1; i >= 0; i--) {
-        data.children.push(deepCopy(externalData[i]));
+        data[childrenKey].push(deepCopy(externalData[i]));
       }
     } else {
-      data.children.push(deepCopy(externalData));
+      data[childrenKey].push(deepCopy(externalData));
     }
     return data;
   }
@@ -371,13 +377,13 @@ export default class TreeChartCore {
   onClickNode(index: number) {
     if (this.collapseEnabled) {
       const curNode = this.nodeDataList[index];
-      if (curNode.data.children) {
-        curNode.data._children = curNode.data.children;
-        curNode.data.children = null;
+      if (curNode.data[this.treeConfig.childrenKey]) {
+        curNode.data[`_${[this.treeConfig.childrenKey]}`] = curNode.data[this.treeConfig.childrenKey];
+        curNode.data[this.treeConfig.childrenKey] = null;
         curNode.data._collapsed = true;
       } else {
-        curNode.data.children = curNode.data._children;
-        curNode.data._children = null;
+        curNode.data[this.treeConfig.childrenKey] = curNode.data[`_${this.treeConfig.childrenKey}`];
+        curNode.data[`_${this.treeConfig.childrenKey}`] = null;
         curNode.data._collapsed = false;
       }
       this.draw();
