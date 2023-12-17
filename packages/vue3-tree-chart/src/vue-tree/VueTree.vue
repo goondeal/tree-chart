@@ -10,7 +10,6 @@
         <div
           class="node-slot"
           v-for="(node, index) of nodeDataList"
-          @click="onClickNode(index)"
           :key="node.data._key"
           :style="{
             left: formatDimension(
@@ -24,13 +23,15 @@
           }"
         >
           <slot
-            name="node"
-            v-bind:node="node.data"
+          name="node"
+          @click="onClickNode(index)"
+          v-bind:node="node.data"
             v-bind:collapsed="node.data._collapsed"
           >
             <!-- 默认展示value字段 -->
             <span>{{ node.data.value }}</span>
           </slot>
+          <slot name="options" v-bind:node="node.data"></slot>
         </div>
       </transition-group>
     </div>
